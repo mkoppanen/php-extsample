@@ -19,6 +19,9 @@
 /* For stuff used in PHP_MINFO_FUNCTION */
 #include "ext/standard/info.h"
 
+/* {{{ proto string extsample_version()
+	Returns the extsample version
+*/
 PHP_FUNCTION(extsample_version)
 {
 	/* The function takes no arguments */
@@ -32,6 +35,7 @@ PHP_FUNCTION(extsample_version)
 	*/
 	RETURN_STRING(PHP_EXTSAMPLE_EXTVER, 1);
 }
+/* }}} */
 
 PHP_RINIT_FUNCTION(extsample)
 {

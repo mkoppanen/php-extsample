@@ -3,7 +3,7 @@ PHP_ARG_ENABLE(extsample, whether to enable extsample,
 
 if test "$PHP_EXTSAMPLE" != "no"; then
   #
-  # Add libraries and other stuff here (for libexample)
+  # Add libraries and other stuff here (below is how you would add libexample):
   #  
   #  PHP_ADD_LIBRARY_WITH_PATH(example, $PHP_LIBEXAMPLE_DIR/$PHP_LIBDIR, EXTSAMPLE_SHARED_LIBADD)
   #  PHP_ADD_INCLUDE($PHP_LIBEXAMPLE_INCDIR)
