@@ -57,6 +57,10 @@ PHP_MSHUTDOWN_FUNCTION(extsample)
 	return SUCCESS;
 }
 
+/*
+	This function gets executed during phpinfo to display information about the extension.
+	There is a correspending PHP_INFO(extsample) entry in the extsample_module_entry
+*/
 PHP_MINFO_FUNCTION(extsample)
 {
 	php_info_print_table_start();
