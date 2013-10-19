@@ -75,6 +75,73 @@ PHP_RSHUTDOWN_FUNCTION(extsample)
 	return SUCCESS;
 }
 
+/*
+  Declare methods for our extsample class.
+*/
+static
+zend_function_entry php_extsample_class_methods[] =
+{
+	{ NULL, NULL, NULL }
+};
+
+/* This function is called while the object is being destroyed but 
+   after destructors have been called */
+static
+void php_extsample_object_free_storage(void *object TSRMLS_DC)
+{
+	php_extsample_object *intern = (php_extsample_object *)object;
+
+	if (!intern) {
+		return;
+	}
+
+	/* Free anything here that you allocate in php_extsample_object_new */
+
+	zend_object_std_dtor(&intern->zo TSRMLS_CC);
+	efree(intern);
+}
+
+/* Compatibility macro for pre PHP 5.4 versions to initialise properties */
+#if PHP_VERSION_ID < 50399 && !defined(object_properties_init)
+# define object_properties_init(zo, class_type) { \
+			zval *tmp; \
+			zend_hash_copy((*zo).properties, \
+							&class_type->default_properties, \
+							(copy_ctor_func_t) zval_add_ref, \
+							(void *) &tmp, \
+							sizeof(zval *)); \
+		 }
+#endif
+
+/*
+  This function gets called when a new instance of ExtSample class is created
+  but before calling constructor. Any internal initialisation of structures that
+  are per object can be done here
+*/
+static
+zend_object_value php_extsample_object_new(zend_class_entry *class_type TSRMLS_DC)
+{
+	zend_object_value retval;
+	/* Allocate space for our object using PHP emalloc */
+	php_extsample_object *intern = emalloc (sizeof (php_extsample_object));
+
+	/* Initialise zend object member */
+	memset(&intern->zo, 0, sizeof(zend_object));
+	zend_object_std_init(&intern->zo, class_type TSRMLS_CC);
+
+	/* Initialise object properties, there is a macro above for older PHP versions */
+	object_properties_init(&intern->zo, class_type);
+
+	/* Put this object into Zend Object Store and assign a destructor (what gets called when the object is destroyed) */
+	retval.handle = zend_objects_store_put(intern, NULL, (zend_objects_free_object_storage_t) php_extsample_object_free_storage, NULL TSRMLS_CC);
+
+	/* Assign the object handlers initialised in MINIT */
+	retval.handlers = &extsample_object_handlers;
+
+	/* Return the object */
+	return retval;
+}
+
 PHP_MINIT_FUNCTION(extsample)
 {
 	/* Here is where we register classes and resources. For now we are going to register
@@ -125,6 +192,7 @@ PHP_MINFO_FUNCTION(extsample)
 */
 zend_function_entry extsample_functions[] = {
 	PHP_FE(extsample_version, NULL)
+	/* Add more PHP_FE entries here, the last entry needs to be NULL, NULL, NULL */
 	{NULL, NULL, NULL}
 };
 
