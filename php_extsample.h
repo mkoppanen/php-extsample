@@ -17,12 +17,21 @@
 #ifndef PHP_EXTSAMPLE_H
 # define PHP_EXTSAMPLE_H
 
+/*
+  This is the main header file for the extension. It's good to keep
+  this file as light as possible and if you need additional definitions
+  do them in a separate header which is included from the implementation file (.c)
+*/
+
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
 
 #include "php.h"
 
+/*
+  Define the extension version
+*/
 #define PHP_EXTSAMPLE_EXTVER "0.0.1"
 
 /*
