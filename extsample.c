@@ -19,6 +19,26 @@
 /* For stuff used in PHP_MINFO_FUNCTION */
 #include "ext/standard/info.h"
 
+/* This is the internal structure for out extsample class.
+   Effectively it can be used to store data inside the object
+   without having to expose the members to userland.
+
+   This structure would commonly hold file handles, library handles
+   etc etc.
+*/
+
+typedef struct _php_extsample_object  {
+	zend_object zo;
+} php_extsample_object;
+
+/* Class entry for our extsample class. Each class needs one of these */
+static
+	zend_class_entry *php_extsample_sc_entry;
+
+/* Object handlers for extsample class. Things like what to do during clone, new etc */
+static
+	zend_object_handlers extsample_object_handlers;
+
 /* {{{ proto string extsample_version()
 	Returns the extsample version
 */
@@ -57,6 +77,26 @@ PHP_RSHUTDOWN_FUNCTION(extsample)
 
 PHP_MINIT_FUNCTION(extsample)
 {
+	/* Here is where we register classes and resources. For now we are going to register
+	   extsample class */
+	zend_class_entry ce;
+
+	/* Initialise the object handlers to standard object handlers (i.e sane defaults) */
+	memcpy (&extsample_object_handlers, zend_get_std_object_handlers (), sizeof (zend_object_handlers));
+
+	/* Initialise the class entry and assign methods to the class entry */
+	INIT_CLASS_ENTRY(ce, "ExtSample", php_extsample_class_methods);
+
+	/* This is what gets called when a new object of our type is created, allows to initialise
+	   members in the 'php_extsample_object' before constructor gets invoked */
+	ce.create_object = php_extsample_object_new;
+
+	/* Do not allow cloning for now, results to "tried to clone uncloneable object" */
+	extsample_object_handlers.clone_obj = NULL;
+
+	/* Register our class entry with the engine */
+	php_extsample_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
+
 	return SUCCESS;
 }
 
