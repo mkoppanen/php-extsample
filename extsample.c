@@ -92,6 +92,11 @@ PHP_METHOD(extsample, getname)
 		the C function return void. We use PHP macros to set the return value correctly
 	*/
 	if (!intern->name) {
+		/* This expands to:
+		
+		{ RETVAL_NULL(); return;}
+		
+		*/
 		RETURN_NULL();
 	}
 
