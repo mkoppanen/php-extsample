@@ -29,6 +29,7 @@
 
 typedef struct _php_extsample_object  {
 	zend_object zo;
+	char *name;
 } php_extsample_object;
 
 /* Class entry for our extsample class. Each class needs one of these */
@@ -38,6 +39,70 @@ static
 /* Object handlers for extsample class. Things like what to do during clone, new etc */
 static
 	zend_object_handlers extsample_object_handlers;
+
+/* {{{ proto ExtSample ExtSample::__construct(string $name)
+    Construct a new extsample object
+*/
+PHP_METHOD(extsample, __construct)
+{
+	php_extsample_object *intern;
+	char *name;
+	int name_len;
+
+	/* Parse one string parameter, name. Notice that name_len has to be int, not long 
+		otherwise it causes problems on platforms where long and int are different size
+	*/
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE) {
+		/*
+			Notice that if parameter parsing has failed in constructor then we return here
+			any possible initialisation that happens after this would not be executed and
+			you might end up with half built object. In some cases it's best to either avoid
+			constructor parameters, make them optional or throw exception on failure
+		*/
+		return;
+	}
+
+	/* This is how you get access to the internal structure allocated in php_extsample_object_new */
+	intern = (php_extsample_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	/* We store the name into the struct using estrdup
+	   It's essentially same as strdup but uses PHP memory management
+	 */
+	intern->name = estrdup (name);
+}
+/* }}} */
+
+/* {{{ proto string ExtSample::getName()
+    Get name stored into extsample object
+*/
+PHP_METHOD(extsample, getname)
+{
+	php_extsample_object *intern;
+
+	/* This method takes no parameters */
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	/* Get our object structure */
+	intern = (php_extsample_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	/*
+		If no name is set we return PHP null. Note that you cannot just "return NULL;" because
+		the C function return void. We use PHP macros to set the return value correctly
+	*/
+	if (!intern->name) {
+		RETURN_NULL();
+	}
+
+	/* If we have a name, then return a copy of it. We have to copy because otherwise the 
+	   returned string might be freed when the return value goes out of scope and that would
+	   a dangling pointer inside the object
+	*/
+	RETURN_STRING(intern->name, 1);
+}
+/* }}} */
+
 
 /* {{{ proto string extsample_version()
 	Returns the extsample version
@@ -76,11 +141,28 @@ PHP_RSHUTDOWN_FUNCTION(extsample)
 }
 
 /*
+	Argument info for the constructor. I think this is used by reflection
+*/
+ZEND_BEGIN_ARG_INFO_EX(extsample_construct_args, 0, 0, 1)
+	ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+/*
+	Argument info for getname
+*/
+ZEND_BEGIN_ARG_INFO_EX(extsample_getname_args, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+/*
   Declare methods for our extsample class.
 */
 static
 zend_function_entry php_extsample_class_methods[] =
 {
+	/* Constructor entry in the class methods, otherwise identical to others except has ZEND_ACC_CTOR */
+	PHP_ME(extsample, __construct, extsample_construct_args,   ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+	/* Other methods below */
+	PHP_ME(extsample, getname, extsample_getname_args,   ZEND_ACC_PUBLIC)
 	{ NULL, NULL, NULL }
 };
 
@@ -95,7 +177,10 @@ void php_extsample_object_free_storage(void *object TSRMLS_DC)
 		return;
 	}
 
-	/* Free anything here that you allocate in php_extsample_object_new */
+	/* During destruction we check if name is set and efree it */
+	if (intern->name) {
+		efree(intern->name);
+	}
 
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
 	efree(intern);
@@ -124,6 +209,9 @@ zend_object_value php_extsample_object_new(zend_class_entry *class_type TSRMLS_D
 	zend_object_value retval;
 	/* Allocate space for our object using PHP emalloc */
 	php_extsample_object *intern = emalloc (sizeof (php_extsample_object));
+
+	/* Init the 'name' member to NULL */
+	intern->name = NULL;
 
 	/* Initialise zend object member */
 	memset(&intern->zo, 0, sizeof(zend_object));
