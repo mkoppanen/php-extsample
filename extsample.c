@@ -39,11 +39,19 @@ PHP_FUNCTION(extsample_version)
 
 PHP_RINIT_FUNCTION(extsample)
 {
+	/*
+		Do any per request initialisation here. Not used commonly
+		and also note that doing heavy processing here will affect
+		every request. If possible it's always better to use MINIT
+	*/
 	return SUCCESS;
 }
 
 PHP_RSHUTDOWN_FUNCTION(extsample)
 {
+	/*
+		Executed during request shutdown
+	*/
 	return SUCCESS;
 }
 
