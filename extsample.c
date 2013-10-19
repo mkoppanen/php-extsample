@@ -111,9 +111,15 @@ PHP_METHOD(extsample, getname)
 }
 /* }}} */
 
+/* Get the type of a zval * in a character array */
 static
 char *s_get_zval_type (zval *value)
 {
+	/*
+		Z_TYPE_P returns the type of a zval pointer
+		There are macros for Z_TYPE and Z_TYPE_PP, the former is for zval
+		latter is for zval **
+	*/
 	switch (Z_TYPE_P(value)) {
 		case IS_NULL:
 		return estrdup ("IS_NULL");
