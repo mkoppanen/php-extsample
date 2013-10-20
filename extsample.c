@@ -385,6 +385,30 @@ PHP_FUNCTION(extsample_stream_fetch)
 }
 /* }}} */
 
+/* {{{ proto void extsample_leak()
+	This function will leak memory emalloced and malloced
+*/
+PHP_FUNCTION(extsample_leak)
+{
+	char *eptr, *ptr;
+
+	/* The function takes no arguments */
+	if(zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	/*
+		emalloc 5 bytes of memory
+	*/
+	eptr = emalloc (5);
+
+	/*
+		malloc 5 bytes of memory
+	*/
+	ptr = malloc (5);
+}
+/* }}} */
+
 PHP_RINIT_FUNCTION(extsample)
 {
 	/*
@@ -450,7 +474,9 @@ void php_extsample_object_free_storage(void *object TSRMLS_DC)
 		return;
 	}
 
-	/* During destruction we check if name is set and efree it */
+	/*
+		During destruction we check if name is set and efree it.
+	*/
 	if (intern->name) {
 		efree(intern->name);
 	}
@@ -559,12 +585,16 @@ ZEND_BEGIN_ARG_INFO_EX(extsample_stream_fetch_args, 0, 0, 1)
 	ZEND_ARG_INFO(0, timeout)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(extsample_leak_args, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
 /*
   Functions that the extension provides, class methods are separately
 */
 zend_function_entry extsample_functions[] = {
 	PHP_FE(extsample_version, extsample_version_args)
 	PHP_FE(extsample_stream_fetch, extsample_stream_fetch_args)
+	PHP_FE(extsample_leak, extsample_leak_args)
 	/* Add more PHP_FE entries here, the last entry needs to be NULL, NULL, NULL */
 	{NULL, NULL, NULL}
 };
