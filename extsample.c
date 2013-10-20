@@ -242,8 +242,6 @@ PHP_METHOD(extsample, arrayvaluetypes)
 	/*
 		The signature changed between PHP 5.2 and PHP 5.3.
 		If you are not inclined to support PHP 5.2 just use the newer version.
-		
-		
 	*/
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 3)
 	zend_hash_apply_with_arguments(Z_ARRVAL_P(array), (apply_func_args_t) s_get_element_type, 1, return_value);
@@ -317,9 +315,7 @@ PHP_FUNCTION(extsample_stream_fetch)
 	tv.tv_usec = 0;
 
 	/* Create a new PHP stream transport */
-	stream = php_stream_xport_create (dsn, dsn_len,
-										0, STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT,
-										NULL, &tv, NULL, &err_msg, &err_code);
+	stream = php_stream_xport_create (dsn, dsn_len, 0, STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT, NULL, &tv, NULL, &err_msg, &err_code);
 
 	/*
 		If we failed to open a stream, print out a warning and return false. You could also throw an exception here
