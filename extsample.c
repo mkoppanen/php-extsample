@@ -19,6 +19,9 @@
 /* For stuff used in PHP_MINFO_FUNCTION */
 #include "ext/standard/info.h"
 
+/* For smart strings */
+#include "ext/standard/php_smart_str.h"
+
 /* This is the internal structure for out extsample class.
    Effectively it can be used to store data inside the object
    without having to expose the members to userland.
@@ -257,7 +260,6 @@ PHP_METHOD(extsample, arrayvaluetypes)
 }
 /* }}} */
 
-
 /* {{{ proto string extsample_version()
 	Returns the extsample version
 */
@@ -273,6 +275,109 @@ PHP_FUNCTION(extsample_version)
 		with emalloc or similar because the value is later efreed
 	*/
 	RETURN_STRING(PHP_EXTSAMPLE_EXTVER, 1);
+}
+/* }}} */
+
+/* {{{ proto string extsample_stream_fetch(string $dsn[, integer $timeout_sec])
+	Simple demonstration of using streams. Connects to an endpoint, sends GET / HTTP/1.0\r\n\r\n and waits response.
+	Call it like $contents = extsample_stream_fetch ("tcp://valokuva.org:80");
+*/
+PHP_FUNCTION(extsample_stream_fetch)
+{
+	/*
+		I guess mainly due to Windows, PHP uses C89 standard so you have 
+		to declare variables at the beginning of a scope
+	*/
+	size_t written, write_size;
+	php_stream *stream;
+	char *err_msg = NULL;
+	int err_code = 0;
+	struct timeval tv;
+	char *dsn, *line;
+	int dsn_len;
+
+	/*
+		We need to initialise timeout because it's an optional parameter
+		so zend_parse_parameters will not touch it
+	*/
+	long timeout = 10;
+	char buffer [1024];
+
+	/* Take one string parameter */
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &dsn, &dsn_len, &timeout) == FAILURE) {
+		return;
+	}
+
+    /* Setup timeout for the fetch */
+    tv.tv_sec  = timeout;
+    tv.tv_usec = 0;
+
+	/* Create a new PHP stream transport */
+    stream = php_stream_xport_create (dsn, dsn_len,
+                                      0, STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT,
+                                      NULL, &tv, NULL, &err_msg, &err_code);
+
+	/*
+		If we failed to open a stream, print out a warning and return false. You could also throw an exception here
+		RETURN_FALSE will set return_value to false and return. RETVAL_FALSE would just set return_value but not return
+	*/
+    if (!stream) {
+		/* This is how you do a PHP warning, could also throw exception here */
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", err_msg);
+		RETURN_FALSE;
+	}
+
+	/*
+		First write our request data
+	*/
+	write_size = sizeof("GET / HTTP/1.0\r\n\r\n") - 1;
+	written = php_stream_write(stream, "GET / HTTP/1.0\r\n\r\n", write_size);
+
+	/* Failed to write our data, fail here */
+	if (write_size < written) {
+		/* Could show a warning here as well */
+		php_stream_close(stream);
+		RETURN_FALSE;
+	}
+
+	/*
+		smart_str is a php string type, which allows creating automatically
+		expanding strings. For more information see the ext/standard/php_smart_str.h
+		header
+	*/
+	smart_str str = {0};
+
+	/*
+		Read the stream until we meet eof
+	*/
+	while(!php_stream_eof(stream)) {
+		/*
+			Read a block from the stream into our buffer
+		*/
+		size_t bytes_read = php_stream_read(stream, buffer, sizeof (buffer));
+		if (bytes_read <= 0) {
+			break;
+		}
+		/*
+			Append the received buffer into the smart_str. The smart_str
+			takes care of allocating space for added strings
+		*/
+		smart_str_appendl(&str, buffer, bytes_read);
+	}
+	/*
+		After everything has been read, close the stream
+	*/
+	php_stream_close(stream);
+
+	/*
+		We append our string to return_value using this macro
+	*/
+	RETVAL_STRINGL(str.c, str.len, 1);
+
+	/*
+		And free the buffer as we copied the string above
+	*/
+	smart_str_free (&str);
 }
 /* }}} */
 
@@ -443,6 +548,7 @@ PHP_MINFO_FUNCTION(extsample)
 */
 zend_function_entry extsample_functions[] = {
 	PHP_FE(extsample_version, NULL)
+	PHP_FE(extsample_stream_fetch, NULL)
 	/* Add more PHP_FE entries here, the last entry needs to be NULL, NULL, NULL */
 	{NULL, NULL, NULL}
 };
