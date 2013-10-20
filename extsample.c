@@ -285,7 +285,7 @@ PHP_FUNCTION(extsample_version)
 PHP_FUNCTION(extsample_stream_fetch)
 {
 	/*
-		I guess mainly due to Windows, PHP uses C89 standard so you have 
+		I guess mainly due to Windows, PHP uses C89 standard so you have
 		to declare variables at the beginning of a scope
 	*/
 	size_t written, write_size;
@@ -303,25 +303,29 @@ PHP_FUNCTION(extsample_stream_fetch)
 	long timeout = 10;
 	char buffer [1024];
 
-	/* Take one string parameter */
+	/*
+		Take one string parameter
+	*/
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &dsn, &dsn_len, &timeout) == FAILURE) {
 		return;
 	}
 
-    /* Setup timeout for the fetch */
-    tv.tv_sec  = timeout;
-    tv.tv_usec = 0;
+	/*
+		Setup timeout for the fetch
+	*/
+	tv.tv_sec  = timeout;
+	tv.tv_usec = 0;
 
 	/* Create a new PHP stream transport */
-    stream = php_stream_xport_create (dsn, dsn_len,
-                                      0, STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT,
-                                      NULL, &tv, NULL, &err_msg, &err_code);
+	stream = php_stream_xport_create (dsn, dsn_len,
+										0, STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT,
+										NULL, &tv, NULL, &err_msg, &err_code);
 
 	/*
 		If we failed to open a stream, print out a warning and return false. You could also throw an exception here
 		RETURN_FALSE will set return_value to false and return. RETVAL_FALSE would just set return_value but not return
 	*/
-    if (!stream) {
+	if (!stream) {
 		/* This is how you do a PHP warning, could also throw exception here */
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", err_msg);
 		RETURN_FALSE;
@@ -333,9 +337,13 @@ PHP_FUNCTION(extsample_stream_fetch)
 	write_size = sizeof("GET / HTTP/1.0\r\n\r\n") - 1;
 	written = php_stream_write(stream, "GET / HTTP/1.0\r\n\r\n", write_size);
 
-	/* Failed to write our data, fail here */
+	/*
+		Failed to write our data, fail here
+	*/
 	if (write_size < written) {
-		/* Could show a warning here as well */
+		/*
+			Could show a warning here as well
+		*/
 		php_stream_close(stream);
 		RETURN_FALSE;
 	}
