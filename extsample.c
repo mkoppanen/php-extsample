@@ -401,8 +401,9 @@ PHP_RSHUTDOWN_FUNCTION(extsample)
 
 /*
 	Argument info for the constructor. I think this is used by reflection
+	The last number defines how many mandatory arguments the function takes
 */
-ZEND_BEGIN_ARG_INFO_EX(extsample_construct_args, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(extsample_construct_args, 0, 0, 0)
 	ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
@@ -543,12 +544,23 @@ PHP_MINFO_FUNCTION(extsample)
 	php_info_print_table_end();
 }
 
+ZEND_BEGIN_ARG_INFO_EX(extsample_version_args, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+/*
+	One mandatory argument and one optional
+*/
+ZEND_BEGIN_ARG_INFO_EX(extsample_stream_fetch_args, 0, 0, 1)
+	ZEND_ARG_INFO(0, dsn)
+	ZEND_ARG_INFO(0, timeout)
+ZEND_END_ARG_INFO()
+
 /*
   Functions that the extension provides, class methods are separately
 */
 zend_function_entry extsample_functions[] = {
-	PHP_FE(extsample_version, NULL)
-	PHP_FE(extsample_stream_fetch, NULL)
+	PHP_FE(extsample_version, extsample_version_args)
+	PHP_FE(extsample_stream_fetch, extsample_stream_fetch_args)
 	/* Add more PHP_FE entries here, the last entry needs to be NULL, NULL, NULL */
 	{NULL, NULL, NULL}
 };
