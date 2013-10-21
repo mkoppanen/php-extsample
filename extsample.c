@@ -438,6 +438,11 @@ PHP_FUNCTION(extsample_leak)
 		malloc 5 bytes of memory
 	*/
 	ptr = malloc (5);
+
+	/*
+		We exit here so the memory will leak. You should see
+		this in valgrind.
+	*/
 }
 /* }}} */
 
