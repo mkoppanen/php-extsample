@@ -79,7 +79,8 @@ PHP_METHOD(extsample, __construct)
 	char *name = NULL;
 	int name_len = 0;
 
-	/* Parse one string parameter, name. Notice that name_len has to be int, not long 
+	/*
+		Parse one string parameter, name. Notice that name_len has to be int, not long 
 		otherwise it causes problems on platforms where long and int are different size
 		| makes parameters after it optional
 	*/
@@ -93,12 +94,15 @@ PHP_METHOD(extsample, __construct)
 		return;
 	}
 
-	/* This is how you get access to the internal structure allocated in php_extsample_object_new */
+	/* 
+		This is how you get access to the internal structure allocated in php_extsample_object_new
+	*/
 	intern = (php_extsample_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
-	/* We store the name into the struct using estrdup if it's set
-	   It's essentially same as strdup but uses PHP memory management
-	 */
+	/*
+		We store the name into the struct using estrdup if it's set
+		It's essentially same as strdup but uses PHP memory management
+	*/
 	if (name_len) {
 		intern->name = estrdup (name);
 	} else {
