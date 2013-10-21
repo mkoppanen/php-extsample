@@ -465,6 +465,52 @@ PHP_FUNCTION(extsample_leak)
 }
 /* }}} */
 
+/* {{{ proto void extsample_separate_zval(mixed $not_separated, mixed $separated)
+	This function demonstrates the effects of / modifier in argument parsing
+*/
+PHP_FUNCTION(extsample_separate_zval)
+{
+	zval *not_separated, *separated;
+
+	/*
+		The second argument has / after it, whcih means that the argument is separated from the
+		original value. This is useful if you want to modify the value inside the function without
+		affecting the calling scope. Calls SEPARATE_ZVAL_IF_NOT_REF
+	*/
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zz/", &not_separated, &separated) == FAILURE) {
+		return;
+	}
+
+	/*
+		Let's convert both values to strings. If you call this function in the following fashion:
+
+		$first = 1;
+		$second = 1;
+
+		extsample_separate_zval ($first, $second);
+		var_dump ($first, $second);
+
+		you can see that the first argument has been converted to string where as the second one is
+		unaffected in the caller scope
+		
+	*/
+
+	/*
+		Call destructors on both
+	*/
+	zval_dtor (not_separated);
+	zval_dtor (separated);
+
+	/*
+		And set their value to hello world string
+	*/
+	ZVAL_STRING (not_separated, "Hello World!", 1);
+	ZVAL_STRING (separated, "Hello World!", 1);
+	zval_ptr_dtor (separated);
+
+}
+/* }}} */
+
 PHP_RINIT_FUNCTION(extsample)
 {
 	/*
@@ -697,6 +743,11 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(extsample_leak_args, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(extsample_separate_zval_args, 0, 0, 2)
+	ZEND_ARG_INFO(0, not_separated)
+	ZEND_ARG_INFO(0, separated)
+ZEND_END_ARG_INFO()
+
 /*
   Functions that the extension provides, class methods are separately
 */
@@ -704,6 +755,7 @@ zend_function_entry extsample_functions[] = {
 	PHP_FE(extsample_version, extsample_version_args)
 	PHP_FE(extsample_stream_fetch, extsample_stream_fetch_args)
 	PHP_FE(extsample_leak, extsample_leak_args)
+	PHP_FE(extsample_separate_zval, extsample_separate_zval_args)
 	/* Add more PHP_FE entries here, the last entry needs to be NULL, NULL, NULL */
 	{NULL, NULL, NULL}
 };
