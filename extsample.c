@@ -22,6 +22,29 @@
 /* For smart strings */
 #include "ext/standard/php_smart_str.h"
 
+/*
+	Define our globals. These are used for ini-settings.
+	Also, if you need global variables do not use static C globals,
+	rather put the variables in this structure because that way they
+	place nice with ZTS
+
+	NEEDED_FOR_INI
+*/
+ZEND_BEGIN_MODULE_GLOBALS(extsample)
+	char *default_name; /* This is our ini-setting, extsample.default_name */
+ZEND_END_MODULE_GLOBALS(extsample)
+
+/*
+	Declare the globals defined above
+*/
+ZEND_DECLARE_MODULE_GLOBALS(extsample)
+
+#ifdef ZTS
+#define EXTSAMPLE_G(v) TSRMG(extsample_globals_id, zend_extsample_globals *, v)
+#else
+#define EXTSAMPLE_G(v) (extsample_globals.v)
+#endif
+
 /* This is the internal structure for out extsample class.
    Effectively it can be used to store data inside the object
    without having to expose the members to userland.
@@ -49,8 +72,12 @@ static
 PHP_METHOD(extsample, __construct)
 {
 	php_extsample_object *intern;
-	char *name;
-	int name_len;
+
+	/*
+		Name is optional parameter so we need to initialise manually
+	*/
+	char *name = NULL;
+	int name_len = 0;
 
 	/* Parse one string parameter, name. Notice that name_len has to be int, not long 
 		otherwise it causes problems on platforms where long and int are different size
@@ -74,6 +101,11 @@ PHP_METHOD(extsample, __construct)
 	 */
 	if (name_len) {
 		intern->name = estrdup (name);
+	} else {
+		/*
+			If user did not provide a name, use the ini-setting extsample.default_name
+		*/
+		intern->name = estrdup (EXTSAMPLE_G(default_name));
 	}
 }
 /* }}} */
@@ -529,11 +561,47 @@ zend_object_value php_extsample_object_new(zend_class_entry *class_type TSRMLS_D
 	return retval;
 }
 
+/* 
+	Define ini entries here. You can define the name of the ini-setting, default value. The possible settings for where the
+	configuration can be changed are: PHP_INI_USER, PHP_INI_PERDIR, PHP_INI_SYSTEM and PHP_INI_ALL
+
+	Usually you would choose where the setting can be changed based on how it is used. For example if you want to access
+	the setting during RINIT stage then you would want PHP_INI_PERDIR because the setting would have no use after RINIT.
+	
+	The change callback function OnUpdate* depends on the type of your setting, for example OnUpdateBool, OnUpdateString, OnUpdateStringUnempty etc
+	In outr case OnUpdateStringUnempty updates the value but disallows empty values
+
+	The fifth parameter defines the struct member name in the globals that will be changed when this setting is changed.
+	
+	I'll mark all things needed for ini-settings to work with NEEDED_FOR_INI
+*/
+PHP_INI_BEGIN()
+	STD_PHP_INI_ENTRY("extsample.default_name",	"Default Name",	PHP_INI_ALL, OnUpdateStringUnempty,	default_name,	zend_extsample_globals,	extsample_globals)
+PHP_INI_END()
+
+/*
+	Initialise the globals. Called from MINIT
+	NEEDED_FOR_INI
+*/
+static
+void s_extsample_init_globals(zend_extsample_globals *extsample_globals)
+{
+	extsample_globals->default_name = NULL;
+}
+
 PHP_MINIT_FUNCTION(extsample)
 {
 	/* Here is where we register classes and resources. For now we are going to register
 	   extsample class */
 	zend_class_entry ce;
+
+	/*
+		Initialize globals. The two last parameters are ctor and dtor in that order. If you have
+		globals that you need to destroy manually you can register a destructor here. In this case
+		we just register NULL.
+		NEEDED_FOR_INI
+	*/
+	ZEND_INIT_MODULE_GLOBALS(extsample, s_extsample_init_globals, NULL);
 
 	/* Initialise the object handlers to standard object handlers (i.e sane defaults) */
 	memcpy (&extsample_object_handlers, zend_get_std_object_handlers (), sizeof (zend_object_handlers));
@@ -551,11 +619,21 @@ PHP_MINIT_FUNCTION(extsample)
 	/* Register our class entry with the engine */
 	php_extsample_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
 
+	/*
+		Register our ini-settings
+		NEEDED_FOR_INI
+	*/
+	REGISTER_INI_ENTRIES();
 	return SUCCESS;
 }
 
 PHP_MSHUTDOWN_FUNCTION(extsample)
 {
+	/*
+		Unregister the ini entries during module shutdown
+		NEEDED_FOR_INI
+	*/
+	UNREGISTER_INI_ENTRIES();
 	return SUCCESS;
 }
 
@@ -572,6 +650,13 @@ PHP_MINFO_FUNCTION(extsample)
 		/* Add more rows here */
 
 	php_info_print_table_end();
+
+	/*
+		This is not actually needed for ini-settings but it's handy. This macro
+		call shows all extension ini-settings automatically ini phpinfo()
+		NEEDED_FOR_INI
+	*/
+	DISPLAY_INI_ENTRIES();
 }
 
 ZEND_BEGIN_ARG_INFO_EX(extsample_version_args, 0, 0, 0)
