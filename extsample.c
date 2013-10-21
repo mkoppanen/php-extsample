@@ -203,7 +203,9 @@ char *s_get_zval_type (zval *value)
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 3)
 static int s_get_element_type(zval **ppzval, int num_args, va_list args, zend_hash_key *hash_key)
 {
-	/* The older version doesn't pass TSRMLS_DC in arguments so we need to call this macro*/
+	/*
+		The older version doesn't pass TSRMLS_DC in arguments so we need to call this macro
+	*/
 	TSRMLS_FETCH();
 #else
 static int s_get_element_type(zval **ppzval TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key)
@@ -212,7 +214,9 @@ static int s_get_element_type(zval **ppzval TSRMLS_DC, int num_args, va_list arg
 	zval *return_value;
 	char *type_name;
 
-	/* Pick up the return_value from the va_list */
+	/*
+		Pick up the return_value from the va_list
+	*/
 	return_value = va_arg(args, zval *);
 
 	/*
@@ -222,9 +226,12 @@ static int s_get_element_type(zval **ppzval TSRMLS_DC, int num_args, va_list arg
 	*/
 	type_name = s_get_zval_type (*ppzval);
 
-	/* If key length is 0 it means that the index is integer rather than associative */
+	/*
+		If key length is 0 it means that the index is integer rather than associative
+	*/
 	if (!hash_key->nKeyLength) {
-		/* If it's an integer key, this is how you can access it
+		/*
+			If it's an integer key, this is how you can access it
 			The last parameter is whether we copy the string to array.
 			In this case we don't copy, because it's coming from estrdup
 			above and we have no use for it later. Hence we give the ownership
@@ -241,7 +248,8 @@ static int s_get_element_type(zval **ppzval TSRMLS_DC, int num_args, va_list arg
 		add_assoc_string(return_value, hash_key->arKey, type_name, 0);
 	}
 
-	/* This return value continues iteration. We could also return:
+	/*
+		This return value continues iteration. We could also return:
 		ZEND_HASH_APPLY_REMOVE - Continues iteration but removes current element
 		ZEND_HASH_APPLY_STOP - Stop iteration
 	*/
@@ -254,10 +262,14 @@ static int s_get_element_type(zval **ppzval TSRMLS_DC, int num_args, va_list arg
 */
 PHP_METHOD(extsample, arrayvaluetypes)
 {
-	/* The array will be given as zval ptr */
+	/*
+		The array will be given as zval *
+	*/
 	zval *array;
 
-	/* "a" to receive array parameter */
+	/*
+		"a" to receive array parameter
+	*/
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a", &array) == FAILURE) {
 		return;
 	}
@@ -299,12 +311,15 @@ PHP_METHOD(extsample, arrayvaluetypes)
 */
 PHP_FUNCTION(extsample_version)
 {
-	/* The function takes no arguments */
+	/*
+		The function takes no arguments
+	*/
 	if(zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	/* Return a string, the second parameter implicates whether to copy the 
+	/*
+		Return a string, the second parameter implicates whether to copy the 
 		string or not. In general you would copy everything that is not allocated
 		with emalloc or similar because the value is later efreed
 	*/
