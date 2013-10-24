@@ -32,7 +32,7 @@
 /*
   Define the extension version
 */
-#define PHP_EXTSAMPLE_EXTVER "0.0.1"
+#define PHP_EXTSAMPLE_VERSION "0.0.1"
 
 /*
   Define an entry-point to the extension

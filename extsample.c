@@ -344,7 +344,7 @@ PHP_FUNCTION(extsample_version)
 		string or not. In general you would copy everything that is not allocated
 		with emalloc or similar because the value is later efreed
 	*/
-	RETURN_STRING(PHP_EXTSAMPLE_EXTVER, 1);
+	RETURN_STRING(PHP_EXTSAMPLE_VERSION, 1);
 }
 /* }}} */
 
@@ -527,8 +527,6 @@ PHP_FUNCTION(extsample_separate_zval)
 	*/
 	ZVAL_STRING (not_separated, "Hello World!", 1);
 	ZVAL_STRING (separated, "Hello World!", 1);
-	zval_ptr_dtor (&separated);
-
 }
 /* }}} */
 
@@ -744,7 +742,7 @@ PHP_MINFO_FUNCTION(extsample)
 	php_info_print_table_start();
 
 		php_info_print_table_header(2, "extsample extension", "enabled");
-		php_info_print_table_row(2, "extsample extension version", PHP_EXTSAMPLE_EXTVER);
+		php_info_print_table_row(2, "extsample extension version", PHP_EXTSAMPLE_VERSION);
 		/* Add more rows here */
 
 	php_info_print_table_end();
@@ -802,7 +800,7 @@ zend_module_entry extsample_module_entry =
 	PHP_RINIT(extsample),		/* Executed every request, before script is executed */
 	PHP_RSHUTDOWN(extsample),	/* Executed every request, after script has executed */
 	PHP_MINFO(extsample),		/* Hook for displaying info in phpinfo() */
-	PHP_EXTSAMPLE_EXTVER,		/* Extension version, defined in php_extsample.h */
+	PHP_EXTSAMPLE_VERSION,		/* Extension version, defined in php_extsample.h */
 	STANDARD_MODULE_PROPERTIES
 };
 
