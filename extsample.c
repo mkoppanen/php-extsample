@@ -82,7 +82,10 @@ PHP_METHOD(extsample, __construct)
 	/*
 		Parse one string parameter, name. Notice that name_len has to be int, not long 
 		otherwise it causes problems on platforms where long and int are different size
-		| makes parameters after it optional
+		| makes parameters after it optional.
+
+		See http://lxr.php.net/xref/PHP_5_5/README.PARAMETER_PARSING_API for more information
+		regarding how to accept different types.
 	*/
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &name, &name_len) == FAILURE) {
 		/*
