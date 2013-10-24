@@ -150,6 +150,27 @@ PHP_METHOD(extsample, getname)
 }
 /* }}} */
 
+/* {{{ proto string ExtSample::chain()
+    Example of how to return $this
+*/
+PHP_METHOD(extsample, chain)
+{
+	php_extsample_object *intern;
+
+	/* This method takes no parameters */
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+	/*
+		The arguments are: the zval, copy, dtor
+		In this case we want to return a copy of the
+		zval but not destroy the original
+		
+	*/
+	RETURN_ZVAL(getThis(), 1, 0);
+}
+/* }}} */
+
 /* Get the type of a zval * in a character array */
 static
 char *s_get_zval_type (zval *value)
@@ -506,7 +527,7 @@ PHP_FUNCTION(extsample_separate_zval)
 	*/
 	ZVAL_STRING (not_separated, "Hello World!", 1);
 	ZVAL_STRING (separated, "Hello World!", 1);
-	zval_ptr_dtor (separated);
+	zval_ptr_dtor (&separated);
 
 }
 /* }}} */
@@ -551,6 +572,12 @@ ZEND_BEGIN_ARG_INFO_EX(extsample_arrayvaluetypes_args, 0, 0, 1)
 ZEND_END_ARG_INFO()
 
 /*
+	Argument info for chain
+*/
+ZEND_BEGIN_ARG_INFO_EX(extsample_chain_args, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+/*
   Declare methods for our extsample class.
 */
 static
@@ -562,6 +589,7 @@ zend_function_entry php_extsample_class_methods[] =
 	PHP_ME(extsample, getname, extsample_getname_args,   ZEND_ACC_PUBLIC)
 	/* For this method we don't need the internal structure so mark it as static */
 	PHP_ME(extsample, arrayvaluetypes, extsample_arrayvaluetypes_args,   ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	PHP_ME(extsample, chain, extsample_chain_args,   ZEND_ACC_PUBLIC)
 	{ NULL, NULL, NULL }
 };
 
