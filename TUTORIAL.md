@@ -50,7 +50,7 @@ A few words about naming your extension: If you read the PHP license carefully y
      it "PHP Foo" or "phpfoo"
 ```
 
-Hence, choose a name for your extension that does contain "PHP" in it.
+Hence, choose a name for your extension that does not contain "PHP" in it.
 
 ### config.m4
 
