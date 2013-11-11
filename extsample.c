@@ -174,6 +174,37 @@ PHP_METHOD(extsample, chain)
 }
 /* }}} */
 
+/* {{{ proto string ExtSample::returnNewObject()
+    Example of how to return an object. In this case our own ExtSample class
+*/
+PHP_METHOD(extsample, returnnewobject)
+{
+	php_extsample_object *intern, *return_obj;
+
+	/* This method takes no parameters */
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	/*
+		Create an instance of our object. The second parameter is the zend_class_entry for the class.
+		The first parameter is a zval * and in this case we init the return_value to object
+
+		Note: constructor won't be called.
+	*/
+	object_init_ex(return_value, php_extsample_sc_entry);
+
+	/*
+		If you need access to the internal object you can acccess it in the following way
+	*/
+	return_obj = (php_extsample_object *) zend_object_store_get_object(return_value TSRMLS_CC);
+	/*
+		Do something with return_obj, for example set the ->name
+	*/
+	return;
+}
+/* }}} */
+
 /* Get the type of a zval * in a character array */
 static
 char *s_get_zval_type (zval *value)
@@ -579,6 +610,12 @@ ZEND_BEGIN_ARG_INFO_EX(extsample_chain_args, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 /*
+	Argument info for returnnewobject
+*/
+ZEND_BEGIN_ARG_INFO_EX(extsample_returnnewobject_args, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+/*
   Declare methods for our extsample class.
 */
 static
@@ -591,6 +628,7 @@ zend_function_entry php_extsample_class_methods[] =
 	/* For this method we don't need the internal structure so mark it as static */
 	PHP_ME(extsample, arrayvaluetypes, extsample_arrayvaluetypes_args,   ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
 	PHP_ME(extsample, chain, extsample_chain_args,   ZEND_ACC_PUBLIC)
+	PHP_ME(extsample, returnnewobject, extsample_returnnewobject_args,   ZEND_ACC_PUBLIC)
 	{ NULL, NULL, NULL }
 };
 
