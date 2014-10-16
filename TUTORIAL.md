@@ -34,6 +34,11 @@ for the sake of this tutorial I shall not dive deeper into this.
 
 There are a few additional files that will be introduced later, most importantly LICENSE, tests, package.xml and config.w32.
 
+## Versioning
+
+The versioning convention for PHP extensions is major.minor.patch and the initial release of your extension of
+your extension should be 0.1.0, rather than for example 0.0.1. I don't know why this is, but it just happens to
+be the convention followed in PECL.
 
 ## Setting up the boilerplate
 
@@ -69,5 +74,8 @@ fi
 Ever wondered why some extensions use --with-xyz and some use --enable-xyz? The convention here (not enforced) is that
 if you extension links against external libraries --with is used and if there are no external libraries involved then
 --enable should be used. For example Imagick uses --with-imagick because it links against ImageMagick libraries.
+
+
+
 
 
