@@ -76,6 +76,104 @@ if you extension links against external libraries --with is used and if there ar
 --enable should be used. For example Imagick uses --with-imagick because it links against ImageMagick libraries.
 
 
+Drafts
+------
+
+# Allocating memory
+
+PHP provides it's own memory allocation methods that should be used instead of plain malloc, calloc, free etc.
+These functions have "e" -prefix, for example emalloc, estrdup, ecalloc and efree. The memory allocated using
+these functions will count towards the PHP memory_limit and it is automatically freed at the end of the request.
+Even though the memory is automatically freed at the end of a request it is still good practice to maintain allocation
+symmetry and _efree_ everything you _eallocate_.
+
+As the memory is freed automatically at the end of the request these macros are not suitable for allocating memory
+that needs to persist over multiple requests (for example persistent resources). There is a separate set of macros
+to allocate memory for this purpose: pemalloc, pecalloc etc. These macros are defined as follows:
+
+```
+    Zend/zend_alloc.h:
+
+    #define pemalloc(size, persistent) ((persistent)?__zend_malloc(size):emalloc(size))
+    #define pefree(ptr, persistent)  ((persistent)?free(ptr):efree(ptr))
+```
+
+As you can see from the macro definition if the persistent flag is set to true the macro will use operating system's
+allocation methods directly. This also means that all memory allocated using the persistent=1 needs to be freed using
+persistent=1, as otherwise crashes might happen.
+
+
+# zvals
+
+When working with PHP extensions you often encounter a type called "zval". This is a very integral part of the PHP
+engine and it represents any PHP variable type. The struct itself is defined in the following manner:
+
+```
+Zend/zend.h:
+
+struct _zval_struct {
+    /* Variable information */
+    zvalue_value value;     /* value */
+    zend_uint refcount__gc;
+    zend_uchar type;    /* active type */
+    zend_uchar is_ref__gc;
+};
+```
+
+The important parts here are "type" and "value". The type can be set to any of the "IS_" family values, such as
+IS_STRING, IS_ARRAY, IS_LONG etc. Usually however you would access this struct using a plethora of macros available
+for working with zvals, usually named Z_*. There are usually several variants of a single macro available for accessing
+the zval directly, via a pointer or a pointer to pointer. For accessing the "type" member of the macro you could use
+the following macros depending on the situation:
+
+```
+Zend/zend_operators.h:
+
+#define Z_TYPE(zval)        (zval).type
+#define Z_TYPE_P(zval_p)    Z_TYPE(*zval_p)
+#define Z_TYPE_PP(zval_pp)  Z_TYPE(**zval_pp)
+```
+
+As you can see from the definition the _P and _PP variants of the macro simply wrap the plain macro.
+Next, let's look at the zvalue_value struct:
+
+```
+Zend/zend.h:
+
+typedef union _zvalue_value {
+    long lval;                  /* long value */
+    double dval;                /* double value */
+    struct {
+        char *val;
+        int len;
+    } str;
+    HashTable *ht;              /* hash table value */
+    zend_object_value obj;
+    zend_ast *ast;
+} zvalue_value;
+```
+
+The fields in this struct are modified and accessed via the macros depending on the type defined in the zval structure
+described earlier. For for a string variable the zval->type would be set to IS_STRING and in this case zval->value->str
+contains the value of the string. To access a string variable you would use code similar to:
+
+```
+if (Z_TYPE_P(zval_ptr) == IS_STRING) {
+    /*
+        Do something with Z_STRVAL_P(zval_ptr) and/or Z_STRLEN_P(zval_ptr)
+    */
+}
+```
+
+## Reference counting
+
+TODO
+
+## Lifecycle
+
+TODO
+
+
 
 
 
