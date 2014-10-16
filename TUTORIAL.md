@@ -91,9 +91,8 @@ As the memory is freed automatically at the end of the request these macros are 
 that needs to persist over multiple requests (for example persistent resources). There is a separate set of macros
 to allocate memory for this purpose: pemalloc, pecalloc etc. These macros are defined as follows:
 
-```
-    Zend/zend_alloc.h:
-
+Zend/zend_alloc.h:
+```C
     #define pemalloc(size, persistent) ((persistent)?__zend_malloc(size):emalloc(size))
     #define pefree(ptr, persistent)  ((persistent)?free(ptr):efree(ptr))
 ```
@@ -108,9 +107,8 @@ persistent=1, as otherwise crashes might happen.
 When working with PHP extensions you often encounter a type called "zval". This is a very integral part of the PHP
 engine and it represents any PHP variable type. The struct itself is defined in the following manner:
 
-```
 Zend/zend.h:
-
+```C
 struct _zval_struct {
     /* Variable information */
     zvalue_value value;     /* value */
@@ -126,9 +124,8 @@ for working with zvals, usually named Z_*. There are usually several variants of
 the zval directly, via a pointer or a pointer to pointer. For accessing the "type" member of the macro you could use
 the following macros depending on the situation:
 
-```
 Zend/zend_operators.h:
-
+```C
 #define Z_TYPE(zval)        (zval).type
 #define Z_TYPE_P(zval_p)    Z_TYPE(*zval_p)
 #define Z_TYPE_PP(zval_pp)  Z_TYPE(**zval_pp)
@@ -137,9 +134,8 @@ Zend/zend_operators.h:
 As you can see from the definition the _P and _PP variants of the macro simply wrap the plain macro.
 Next, let's look at the zvalue_value struct:
 
-```
 Zend/zend.h:
-
+```C
 typedef union _zvalue_value {
     long lval;                  /* long value */
     double dval;                /* double value */
@@ -157,7 +153,7 @@ The fields in this struct are modified and accessed via the macros depending on 
 described earlier. For for a string variable the zval->type would be set to IS_STRING and in this case zval->value->str
 contains the value of the string. To access a string variable you would use code similar to:
 
-```
+```C
 if (Z_TYPE_P(zval_ptr) == IS_STRING) {
     /*
         Do something with Z_STRVAL_P(zval_ptr) and/or Z_STRLEN_P(zval_ptr)
