@@ -9,7 +9,9 @@ When doing extension development a debug build of PHP is recommended. The debug 
 without optimisations, which is useful when the debugging with gdb or Valgrind. Debug build can be 
 compiled by passing the following configure settings to PHP configure program:
 
-    $ ./configure --enable-debug --disable-all --prefix=/opt/php-debug --enable-maintainer-zts
+```Shell
+$ ./configure --enable-debug --disable-all --prefix=/opt/php-debug --enable-maintainer-zts
+```
 
 This will install a debug version of PHP to /opt/php-debug and does not interfere with your system-wide
 installation. The enable-maintainer-zts flag enables Zend thread-safety and allows to catch some of the common
