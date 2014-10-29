@@ -158,8 +158,6 @@ PHP_METHOD(extsample, getname)
 */
 PHP_METHOD(extsample, chain)
 {
-	php_extsample_object *intern;
-
 	/* This method takes no parameters */
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -179,7 +177,7 @@ PHP_METHOD(extsample, chain)
 */
 PHP_METHOD(extsample, returnnewobject)
 {
-	php_extsample_object *intern, *return_obj;
+	php_extsample_object *return_obj;
 
 	/* This method takes no parameters */
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -397,7 +395,7 @@ PHP_FUNCTION(extsample_stream_fetch)
 	char *err_msg = NULL;
 	int err_code = 0;
 	struct timeval tv;
-	char *dsn, *line;
+	char *dsn;
 	int dsn_len;
 
 	/*
